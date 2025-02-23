@@ -1,0 +1,4 @@
+.env.local
+notebooks/*
+conversation_log_Robert.txt
+agent_database.json
