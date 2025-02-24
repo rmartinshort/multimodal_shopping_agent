@@ -6,8 +6,18 @@ from typing import List
 from livekit.agents import llm
 import webbrowser
 from image_utils import encode_image, capture_image_from_video_stream
+from database_utils import (
+    convert_database_entries_to_conversation,
+    run_generated_query,
+    get_schema_from_db,
+)
 from config import IMAGE_MODEL, IMAGE_RESIZE_WIDTH
-from prompts import WebSearchLLMPrompt, ScreenshotImagePrompt, VideoStreamImagePrompt
+from prompts import (
+    WebSearchLLMPrompt,
+    ScreenshotImagePrompt,
+    VideoStreamImagePrompt,
+    TinyDBSnippetWriterPrompt,
+)
 
 logger = logging.getLogger("agent_tools")
 logger.setLevel(logging.INFO)
@@ -305,7 +315,7 @@ class AgentTools(llm.FunctionContext):
             data_type="output",
             text_data=final_response_text,
         )
-        # save raw model result
+
         self.db.store_text(
             user_id=self.user_id,
             conversation_id=self.conversation_id,
@@ -315,3 +325,90 @@ class AgentTools(llm.FunctionContext):
         )
 
         return final_response_text
+
+    @llm.ai_callable()
+    async def query_conversation_logs(
+        self,
+        user_question: Annotated[
+            str,
+            llm.TypeInfo(
+                description="The question we want to ask of the conversation database. Typically this will be short and involve a users name, like 'Find all of Alices conversations from the last week'"
+            ),
+        ],
+    ):
+        """
+        Ask a question of the conversation log database. The question will be converted into a TinyDB query and then run against the database of historical conversations.
+        This tool should be used when you need to fetch information about something the user asked about in the past, for example they might want to recall a conversation they
+        had with the assistant about office chairs last week.
+        """
+
+        db_schema = get_schema_from_db(self.db.db)
+        today_date = str(datetime.date.today())[:10]
+        input_text = f"""
+        You have a TinyDB called "db". Each entry has the following fields:
+        {db_schema}
+        Please write a query that will answer the following question:
+        {user_question}
+        Keep the following in mind:
+        - Filter out any row with data_type = "image"
+        - Output only your TinyDB query and nothing else
+        Today's date is {today_date}
+        """
+
+        try:
+            response = self._image_llm.chat.completions.create(
+                model=IMAGE_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": TinyDBSnippetWriterPrompt.system_message,
+                            }
+                        ],
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": f"{input_text}"},
+                        ],
+                    },
+                ],
+                max_tokens=1000,
+            )
+            final_response_text = response.choices[0].message.content
+            code_response = final_response_text.split("$$$$")[1]
+            query_result = run_generated_query(self.db.db, code_response)
+            conversation_string = convert_database_entries_to_conversation(query_result)
+            token_usage = str(response.usage.__dict__)
+            logger.info(f"QUERY CONVERSATION LOGS: Here's the query {code_response}")
+        except Exception as e:
+            logger.info(e)
+            token_usage = None
+            conversation_string = "Unable to ask a question about the conversation database: Technical difficulties"
+
+        self.db.store_text(
+            user_id=self.user_id,
+            conversation_id=self.conversation_id,
+            tool_id="query_conversation_logs",
+            data_type="input",
+            text_data=user_question,
+        )
+
+        self.db.store_text(
+            user_id=self.user_id,
+            conversation_id=self.conversation_id,
+            tool_id="query_conversation_logs",
+            data_type="output",
+            text_data=conversation_string,
+        )
+
+        self.db.store_text(
+            user_id=self.user_id,
+            conversation_id=self.conversation_id,
+            tool_id="query_conversation_logs",
+            data_type="metadata",
+            text_data=token_usage,
+        )
+        return conversation_string

@@ -1,9 +1,17 @@
-<a href="https://livekit.io/">
-  <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
-</a>
 
-# Python Multimodal Voice Agent
+# Multimodal Voice Agent for Online Shopping
 
+This is adapted from one of LiveKit's quickstarts. The agent here is designed to help with your online shopping experience.
+It can do the following:
+
+- Search the web (using Perplexity's SONAR API) to get the latest product details
+- Open useful links in your browser 
+- Take screenshots to give advice about products you're currently looking at
+- Capture images from your video stream in case you want to learn more about a product you have at home
+- Log all the conversations to a TinyDB, which it also has access to in order to "remember" what you asked about previously
+
+See the LiveKit docs for more details  
+[Agents Framework](https://github.com/livekit/agents).
 <p>
   <a href="https://cloud.livekit.io/projects/p_/sandbox"><strong>Deploy a sandbox app</strong></a>
   •
@@ -14,31 +22,25 @@
   <a href="https://blog.livekit.io/">Blog</a>
 </p>
 
-A basic example of a multimodal voice agent using LiveKit and the Python [Agents Framework](https://github.com/livekit/agents).
 
 ## Dev Setup
 
 Clone the repository and install dependencies to a virtual environment:
 
 ```console
-cd multimodal-agent-python
+cd multimodal_shopping_agent
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Set up the environment by copying `.env.example` to `.env.local` and filling in the required values:
+Set up the environment by making a file called .env.local and adding the following information 
 
 - `LIVEKIT_URL`
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
 - `OPENAI_API_KEY`
-
-You can also do this automatically using the LiveKit CLI:
-
-```bash
-lk app env
-```
+- `PPLX_API_KEY`
 
 Run the agent:
 
@@ -46,4 +48,5 @@ Run the agent:
 python3 agent.py dev
 ```
 
-This agent requires a frontend application to communicate with. You can use one of our example frontends in [livekit-examples](https://github.com/livekit-examples/), create your own following one of our [client quickstarts](https://docs.livekit.io/realtime/quickstarts/), or test instantly against one of our hosted [Sandbox](https://cloud.livekit.io/projects/p_/sandbox) frontends.
+This agent requires a frontend application to communicate with. To get started, make a meeting room sandbox
+so that the agent can have access to audio and video.

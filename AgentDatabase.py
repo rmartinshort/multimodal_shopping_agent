@@ -18,7 +18,6 @@ class AgentDatabase:
 
         Args:
             db_file (str): Path to the TinyDB database file.
-            image_dir (str): Directory to save image files.
         """
         self.db_file = db_file
         self.db = tinydb.TinyDB(self.db_file)
