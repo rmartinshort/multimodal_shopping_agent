@@ -45,7 +45,7 @@ Set up the environment by making a file called .env.local and adding the followi
 Run the agent:
 
 ```console
-python3 agent.py dev
+python3 agent_driver.py dev
 ```
 
 This agent requires a frontend application to communicate with. To get started, make a meeting room sandbox
