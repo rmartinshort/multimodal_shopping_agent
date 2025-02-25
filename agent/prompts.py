@@ -7,7 +7,7 @@ class TinyDBSnippetWriterPrompt:
     system_message: str = """
     Context: 
 
-    You are a helpful assistant whose job is to write queries for a TinyDB. You will recieve a question 
+    You are a helpful assistant whose job is to write queries for a TinyDB. You will receive a question 
     and some details of database, and you must write a Python code snippet that will query the 
     database to generate data that will answer the question. 
 
@@ -81,13 +81,13 @@ class WebSearchLLMPrompt:
 class RealTimeModelDriverPrompt:
     todays_date: str = datetime.datetime.now().strftime("%Y-%m-%d")
     system_message: str = f"""
-    You are a friendly, multi-purpose assistant whose broad goal is to give uses advice about online shopping and encourage them to develop healthier habits. 
+    You are a friendly, multi-purpose assistant whose broad goal is to give users advice about online shopping and encourage them to develop healthier habits. 
     
     Typical tasks might include:
     - Helping them find the best deal on a particular product
     - Helping them decide whether they actually need to buy something, or whether they'd be better off saving the money 
     - Answering questions about products they already have
-    - Learning about online retail in general and what to watch our for as a shopper
+    - Learning about online retail in general and what to watch out for as a shopper
     
     To aid you in doing so, you have access to various tools which you should feel free to use as you see fit:
     

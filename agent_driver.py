@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import logging
 from dotenv import load_dotenv
 
@@ -15,12 +14,12 @@ from livekit.agents.multimodal import MultimodalAgent
 from livekit.plugins import openai
 from openai import OpenAI
 import os
-from PerplexityChat import PerplexityChat
-from AgentTools import AgentTools
-from prompts import RealTimeModelDriverPrompt
-from AgentDatabase import AgentDatabase
-from ConversationLogger import ConversationLogger
-from config import (
+from agent.tools.PerplexityChat import PerplexityChat
+from agent.tools.AgentTools import AgentTools
+from agent.prompts import RealTimeModelDriverPrompt
+from agent.tools.AgentDatabase import AgentDatabase
+from agent.tools.AgentConversationLogger import ConversationLogger
+from agent.config import (
     REALTIME_MODEL,
     REALTIME_TEMPERATURE,
     VOICE,
@@ -52,6 +51,33 @@ async def entrypoint(ctx: JobContext):
 def run_multimodal_agent(
     ctx: JobContext, participant: rtc.RemoteParticipant, conversation_id: str
 ):
+    """
+    Sets up and runs a multimodal agent for a given participant in a LiveKit room.
+
+    This function initializes the necessary tools, models, and database connections
+    for the agent. It then configures the agent with specific instructions, voice,
+    and temperature settings. The agent is equipped with tools for image generation,
+    web search, and database interaction, enabling it to assist the participant
+    with various tasks.
+
+    Args:
+         ctx: The JobContext object providing access to the LiveKit room.
+         participant: The rtc.RemoteParticipant object representing the user in the room.
+         conversation_id: A unique identifier for the conversation.
+
+    Returns:
+         None. This function starts the agent and logs the conversation.
+
+    Raises:
+         KeyError: If any required environment variables (e.g., OPENAI_API_KEY, PPLX_API_KEY) are not set.
+
+    Example:
+         ```
+         # Assuming 'ctx' is a JobContext, 'participant' is an rtc.RemoteParticipant,
+         # and 'conversation_id' is a string.
+         run_multimodal_agent(ctx, participant, "unique_conversation_id")
+         ```
+    """
     logger.info("Setting up tools")
 
     # models that can be called in the tools
@@ -59,7 +85,8 @@ def run_multimodal_agent(
     web_model = PerplexityChat(
         pplx_api_key=os.environ["PPLX_API_KEY"], pplx_model=PPLX_MODEL
     )
-    tool_use_database = AgentDatabase(TOOL_DATABASE_NAME)
+    # set up database
+    conversation_and_tool_use_database = AgentDatabase(TOOL_DATABASE_NAME)
 
     logger.info("starting multimodal agent")
 
@@ -81,7 +108,7 @@ def run_multimodal_agent(
         ctx.room,
         images_model,
         web_model,
-        database=tool_use_database,
+        database=conversation_and_tool_use_database,
         user_id=participant.identity,
         conversation_id=conversation_id,
     )
@@ -89,9 +116,7 @@ def run_multimodal_agent(
     initial_context = llm.ChatContext().append(
         role="system",
         text=(
-            "The name of the person you're speaking to today is {}".format(
-                participant.identity
-            )
+            "Do not hallucinate. If you don't understand what the user just said then ask them to repeat it"
         ),
     )
 
@@ -105,7 +130,7 @@ def run_multimodal_agent(
     # conversation logger
     cp = ConversationLogger(
         model=agent,
-        database=tool_use_database,
+        database=conversation_and_tool_use_database,
         user_id=participant.identity,
         conversation_id=conversation_id,
         log=CONVERSATION_LOG_PREFIX + "_{}.txt".format(participant.identity),
@@ -118,8 +143,9 @@ def run_multimodal_agent(
         llm.ChatMessage(
             role="assistant",
             content="""
-            You are speaking to {}
+            Here is the name of the person you're speaking to: {}
             Say hello addressing the user by name and say that you're here to assist with any shopping needs.
+            Then explain briefly the things that you can do. 
             """.format(participant.identity),
         )
     )

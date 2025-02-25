@@ -5,14 +5,14 @@ from PIL import ImageGrab
 from typing import List
 from livekit.agents import llm
 import webbrowser
-from image_utils import encode_image, capture_image_from_video_stream
-from database_utils import (
+from agent.utils.image_utils import encode_image, capture_image_from_video_stream
+from agent.utils.database_utils import (
     convert_database_entries_to_conversation,
     run_generated_query,
     get_schema_from_db,
 )
-from config import IMAGE_MODEL, IMAGE_RESIZE_WIDTH
-from prompts import (
+from agent.config import IMAGE_MODEL, IMAGE_RESIZE_WIDTH
+from agent.prompts import (
     WebSearchLLMPrompt,
     ScreenshotImagePrompt,
     VideoStreamImagePrompt,
