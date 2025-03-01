@@ -146,6 +146,9 @@ def run_multimodal_agent(
             Here is the name of the person you're speaking to: {}
             Say hello addressing the user by name and say that you're here to assist with any shopping needs.
             Then explain briefly the things that you can do. 
+            
+            If you decide to call a tool, immediately before issuing the call you should say briefly what you're about to 
+            do and mention that it may take a few seconds.
             """.format(participant.identity),
         )
     )
