@@ -16,7 +16,7 @@ def convert_base64_to_pil(base64_string):
         image_bytes = io.BytesIO(base64.b16decode(base64_string))
         image = Image.open(image_bytes)
         return image
-    except Exception:
+    except Exception as e:
         return None
 
 

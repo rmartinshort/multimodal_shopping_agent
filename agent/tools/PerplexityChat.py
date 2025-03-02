@@ -3,6 +3,18 @@ import json
 
 
 class PerplexityChat:
+    """
+    A client for interacting with the Perplexity AI chat completions API.
+
+    This class provides methods to initialize a connection to the Perplexity API
+    and make requests to generate AI-powered chat completions.
+
+    Attributes:
+        BASE_URL (str): The endpoint URL for the Perplexity chat completions API.
+        api_key (str): The API key used for authentication with Perplexity.
+        model (str): The Perplexity model to use for completions.
+    """
+
     BASE_URL = "https://api.perplexity.ai/chat/completions"
 
     def __init__(self, pplx_model="sonar", pplx_api_key=None):
@@ -10,6 +22,18 @@ class PerplexityChat:
         self.model = pplx_model
 
     def invoke(self, system_prompt, query, max_tokens=1000):
+        """
+        Send a request to the Perplexity API to generate a chat completion.
+
+        Args:
+            system_prompt (object): An object containing the system_prompt attribute
+                that defines the behavior of the AI assistant.
+            query (str): The user's input message or query.
+            max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 1000.
+
+        Returns:
+            requests.Response: The HTTP response from the Perplexity API.
+        """
         payload = {
             "model": self.model,
             "messages": [
@@ -40,6 +64,16 @@ class PerplexityChat:
 
     @staticmethod
     def craft_text_response(response):
+        """
+        Process the API response and extract the generated text and citations.
+
+        Args:
+            response (requests.Response): The HTTP response from the Perplexity API.
+
+        Returns:
+            str: The formatted text response with citations, or an error message
+                if the request was unsuccessful.
+        """
         if response.status_code == 200:
             response_json = json.loads(response.text)
             citations = str(

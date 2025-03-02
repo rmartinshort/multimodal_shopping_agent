@@ -67,7 +67,9 @@ def run_generated_query(db: tinydb.TinyDB, query_string: str) -> List[Dict[str, 
     return results
 
 
-def convert_database_entries_to_conversation(database_entries: List[Dict[str, Any]]) -> str:
+def convert_database_entries_to_conversation(
+    database_entries: List[Dict[str, Any]],
+) -> str:
     """
     Converts a list of database entries into a formatted conversation string.
 
